@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ujian Perkalian Kelas 6</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #141e30, #243b55);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Fredoka One', cursive;
+}
+
+/* UMUM */
+.box {
+    background: rgba(0,0,0,0.85);
+    padding: 25px;
+    border-radius: 20px;
+    width: 390px;
+    text-align: center;
+    box-shadow: 0 0 30px #00fff0;
+    color: white;
+}
+
+.school {
+    font-size: 16px;
+    color: #ffea00;
+    text-shadow: 0 0 8px #ffea00;
+}
+
+.teacher {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+h1 {
+    color: #00fff0;
+    text-shadow: 0 0 10px #00fff0;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    font-size: 18px;
+    border-radius: 10px;
+    border: none;
+    text-align: center;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    font-size: 18px;
+    border-radius: 12px;
+    border: none;
+    background: #ff00ff;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 15px #ff00ff;
+    margin-top: 10px;
+}
+
+button:hover {
+    box-shadow: 0 0 25px #ff00ff;
+}
+
+/* GAME */
+.game { display: none; }
+
+.timer {
+    color: #ff4d4d;
+    margin: 8px 0;
+}
+
+.question {
+    font-size: 32px;
+    margin: 15px 0;
+    color: #ff8cff;
+    text-shadow: 0 0 10px #ff8cff;
+}
+
+.info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+/* LAPORAN */
+.report {
+    display: none;
+    background: white;
+    color: black;
+    padding: 30px;
+    width: 420px;
+    border-radius: 12px;
+}
+
+.report h2 {
+    text-align: center;
+}
+
+.report table {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.report td {
+    padding: 6px;
+}
+
+/* PRINT */
+@media print {
+    body { background: white; }
+    .box, .game { display: none; }
+    .report { display: block; }
+}
+</style>
+</head>
+<body>
+
+<!-- HALAMAN DAFTAR -->
+<div class="box" id="start">
+    <div class="school">🏫 SDN 009 BALIKPAPAN KOTA</div>
+    <div class="teacher">👩‍🏫 Guru: IBU WIWIN</div>
+
+    <h1>📋 Daftar Ujian</h1>
+
+    <input type="text" id="studentName" placeholder="✍️ Nama Siswa">
+    <select id="studentClass">
+        <option value="VI">Kelas VI</option>
+    </select>
+
+    <button onclick="startExam()">▶️ Mulai Ujian</button>
+</div>
+
+<!-- GAME -->
+<div class="box game" id="game">
+    <h1>🧮 Ujian Perkalian</h1>
+
+    <div class="info">
+        <div>📝 Soal: <span id="current">1</span>/10</div>
+        <div>❤️ Nyawa: <span id="life">3</span></div>
+    </div>
+
+    <div class="timer">⏱️ <span id="time">10</span> detik</div>
+
+    <div class="question" id="question">6 × 6 = ?</div>
+
+    <input type="number" id="answer" placeholder="Jawaban">
+    <button onclick="checkAnswer()">🚀 Jawab</button>
+
+    <div class="info">
+        <div>⭐ Skor: <span id="score">0</span></div>
+        <div>📘 Kelas VI</div>
+    </div>
+</div>
+
+<!-- LAPORAN -->
+<div class="report" id="report">
+    <h2>📄 LAPORAN HASIL UJIAN</h2>
+    <p style="text-align:center">
+        <strong>SDN 009 BALIKPAPAN KOTA</strong><br>
+        Guru: <strong>IBU WIWIN</strong>
+    </p>
+
+    <table>
+        <tr><td>Nama Siswa</td><td>: <span id="rName"></span></td></tr>
+        <tr><td>Kelas</td><td>: VI</td></tr>
+        <tr><td>Jumlah Soal</td><td>: 10</td></tr>
+        <tr><td>Skor</td><td>: <span id="rScore"></span></td></tr>
+        <tr><td>Nilai</td><td>: <span id="rGrade"></span></td></tr>
+        <tr><td>Status</td><td>: <span id="rStatus"></span></td></tr>
+    </table>
+
+    <button onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+</div>
+
+<script>
+let a, b;
+let score = 0;
+let life = 3;
+let time = 30;
+let timer;
+let currentQuestion = 1;
+const totalQuestion = 10;
+let studentName = "";
+
+function startExam() {
+    const nameInput = document.getElementById("studentName").value.trim();
+    if (!nameInput) {
+        alert("⚠️ Silakan isi nama siswa terlebih dahulu!");
+        return;
+    }
+    studentName = nameInput;
+    document.getElementById("start").style.display = "none";
+    document.getElementById("game").style.display = "block";
+    newQuestion();
+}
+
+function newQuestion() {
+    clearInterval(timer);
+    time = 30;
+    document.getElementById("time").innerText = time;
+
+    a = Math.floor(Math.random() * 10) + 6;
+    b = Math.floor(Math.random() * 10) + 6;
+    document.getElementById("question").innerText = `${a} × ${b} = ?`;
+    document.getElementById("answer").value = "";
+    document.getElementById("current").innerText = currentQuestion;
+
+    timer = setInterval(() => {
+        time--;
+        document.getElementById("time").innerText = time;
+        if (time === 0) {
+            clearInterval(timer);
+            life--;
+            document.getElementById("life").innerText = life;
+            nextQuestion();
+        }
+    }, 1000);
+}
+
+function checkAnswer() {
+    clearInterval(timer);
+    const ans = document.getElementById("answer").value;
+    if (ans == a * b) score += 10;
+    else life--;
+
+    document.getElementById("score").innerText = score;
+    document.getElementById("life").innerText = life;
+    nextQuestion();
+}
+
+function nextQuestion() {
+    if (life === 0 || currentQuestion === totalQuestion) {
+        finishExam();
+    } else {
+        currentQuestion++;
+        setTimeout(newQuestion, 600);
+    }
+}
+
+function finishExam() {
+    const grade = score >= 80 ? "A" :
+                  score >= 70 ? "B" :
+                  score >= 60 ? "C" :
+                  score >= 50 ? "D" : "E";
+    const status = score >= 60 ? "LULUS" : "TIDAK LULUS";
+
+    document.getElementById("rName").innerText = studentName;
+    document.getElementById("rScore").innerText = score;
+    document.getElementById("rGrade").innerText = grade;
+    document.getElementById("rStatus").innerText = status;
+
+    document.getElementById("game").style.display = "none";
+    document.getElementById("report").style.display = "block";
+}
+</script>
+
+</body>
+</html>
